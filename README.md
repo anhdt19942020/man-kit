@@ -104,16 +104,36 @@ Optional per-project overrides at `.man-kit/config.json`:
 
 ## Composes well with
 
-| Plugin | What man-kit gains |
-|--------|--------------------|
-| [context-mode](https://github.com/mksglu/context-mode) | 98% context-window savings during `code` stage |
-| [context7](https://github.com/upstash/context7) | Live framework docs during `plan` and `code` |
-| [caveman](https://github.com/JuliusBrussee/caveman) | Compressed agent output across all stages |
-| [craftpowers](https://github.com/anhdt19942020/craftpowers) | `test-engineer`, `code-reviewer`, `secure-reviewer` agents |
-| [code-review (Anthropic)](https://claude.com/plugins/code-review) | Multi-confidence-level review during `review` |
-| [semgrep](https://claude.com/plugins/semgrep) / [aikido](https://claude.com/plugins/aikido) | Security analysis during `review` |
+man-kit detects which complementary plugins are installed and dispatches each stage to the best available. None are required — built-in fallbacks always work.
 
-None are required. man-kit detects what's installed and routes accordingly.
+### Stage-aligned (auto-dispatched)
+
+| Stage | Plugins man-kit will leverage if installed |
+|-------|--------------------------------------------|
+| `plan` | [feature-dev](https://claude.com/plugins/feature-dev), [superpowers](https://claude.com/plugins/superpowers), [sourcegraph](https://claude.com/plugins/sourcegraph), [context7](https://claude.com/plugins/context7), [craftpowers](https://github.com/anhdt19942020/craftpowers) |
+| `code` | [context-mode](https://github.com/mksglu/context-mode), [sourcegraph](https://claude.com/plugins/sourcegraph), [context7](https://claude.com/plugins/context7), [frontend-design](https://claude.com/plugins/frontend-design), [code-simplifier](https://claude.com/plugins/code-simplifier), [craftpowers](https://github.com/anhdt19942020/craftpowers) |
+| `test` | [craftpowers](https://github.com/anhdt19942020/craftpowers) (test-engineer agent) |
+| `review` | [code-review](https://claude.com/plugins/code-review), [pr-review-toolkit](https://claude.com/plugins/pr-review-toolkit), [coderabbit](https://claude.com/plugins/coderabbit), [optibot](https://claude.com/plugins/optibot-code-review), [semgrep](https://claude.com/plugins/semgrep), [aikido](https://claude.com/plugins/aikido-security), [craftpowers](https://github.com/anhdt19942020/craftpowers) |
+
+Order within each row reflects dispatch preference (most thorough first). The first installed wins; built-in agent runs if none are installed.
+
+### Meta / adjacent (surfaced via `orchestrator --meta`, not auto-dispatched)
+
+| Plugin | Role |
+|--------|------|
+| [sentry](https://claude.com/plugins/sentry) | Post-ship error monitoring (future `monitor` stage in v2) |
+| [skill-creator](https://claude.com/plugins/skill-creator) | Author/improve skills outside the loop |
+| [claude-md-management](https://claude.com/plugins/claude-md-management) | Post-`done` housekeeping for CLAUDE.md hygiene |
+| [hookify](https://claude.com/plugins/hookify) | Generate custom hooks |
+| [session-report](https://claude.com/plugins/session-report) | Token/cache analytics |
+| [plugin-developer-toolkit](https://claude.com/plugins/plugin-developer-toolkit) | Plugin development tooling |
+
+### Output compressors (cross-stage benefit)
+
+| Plugin | Effect |
+|--------|--------|
+| [caveman](https://github.com/JuliusBrussee/caveman) | ~75% reduction in agent output tokens |
+| [context-mode](https://github.com/mksglu/context-mode) | 98% reduction in code-reading tokens |
 
 ## Documentation
 

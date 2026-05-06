@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-man-kit orchestrator — detect installed Claude Code plugins and recommend dispatch targets.
+man-kit orchestrator -- detect installed Claude Code plugins and recommend dispatch targets.
 
 man-kit is a thin coordination layer; the heavy lifting (deep code review, security scans,
 context-window optimization, etc.) belongs to specialist plugins. This module reports what is
@@ -31,6 +31,7 @@ from typing import Any
 # Plugins man-kit knows how to leverage. Keys are short canonical names; values describe
 # which marketplace IDs to look for (any match counts as installed).
 KNOWN = {
+    # --- previously known ---
     "context-mode": ["context-mode@context-mode", "context-mode@context-mode-marketplace"],
     "context7": ["context7@context7", "context7@claude-plugins-official"],
     "caveman": ["caveman@caveman-marketplace", "caveman@caveman"],
@@ -44,14 +45,38 @@ KNOWN = {
     "semgrep": ["semgrep@claude-plugins-official", "semgrep"],
     "aikido": ["aikido@aikido-marketplace", "aikido-security"],
     "coderabbit": ["coderabbit@coderabbit"],
+    # --- expanded set: stage-aligned ---
+    "feature-dev": ["feature-dev@claude-plugins-official"],
+    "pr-review-toolkit": ["pr-review-toolkit@claude-plugins-official"],
+    "optibot": ["optibot-code-review@optibot", "optibot@optibot"],
+    "sourcegraph": ["sourcegraph@claude-plugins-official", "sourcegraph"],
+    # --- expanded set: meta / future stages (not yet in STAGE_PREFERENCE) ---
+    "sentry": ["sentry@claude-plugins-official"],
+    "skill-creator": ["skill-creator@claude-plugins-official"],
+    "claudemd-mgmt": ["claude-md-management@claude-plugins-official"],
+    "hookify": ["hookify@claude-plugins-official"],
+    "session-report": ["session-report@claude-plugins-official"],
+    "plugin-dev-toolkit": ["plugin-developer-toolkit@claude-plugins-official"],
 }
 
 # Per-stage preference: try these in order; first installed wins. Built-in fallback at end.
+# Order reflects fidelity (most thorough first), then breadth.
 STAGE_PREFERENCE = {
-    "plan": ["superpowers", "context7", "craftpowers"],
-    "code": ["context-mode", "context7", "frontend-design", "code-simplifier", "craftpowers"],
-    "test": ["craftpowers"],  # craftpowers ships test-engineer agent
-    "review": ["code-review", "coderabbit", "semgrep", "aikido", "craftpowers"],
+    "plan":   ["feature-dev", "superpowers", "sourcegraph", "context7", "craftpowers"],
+    "code":   ["context-mode", "sourcegraph", "context7", "frontend-design", "code-simplifier", "craftpowers"],
+    "test":   ["craftpowers"],  # craftpowers ships test-engineer; expand when test-focused plugins emerge
+    "review": ["code-review", "pr-review-toolkit", "coderabbit", "optibot", "semgrep", "aikido", "craftpowers"],
+}
+
+# Meta plugins that don't slot into current 4 stages but are useful adjacent to the loop.
+# Surface them via `--meta` for slash-command discovery; not invoked automatically.
+META_PLUGINS = {
+    "sentry": "post-ship error monitoring (future `monitor` stage)",
+    "skill-creator": "meta -- author/improve skills",
+    "claudemd-mgmt": "post-`done` housekeeping for CLAUDE.md hygiene",
+    "hookify": "meta -- generate custom hooks",
+    "session-report": "meta -- token/cache analytics for the session",
+    "plugin-dev-toolkit": "meta -- plugin development tooling",
 }
 
 
@@ -107,6 +132,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--has", help="Short name of a plugin. Exits 0 if installed, 1 otherwise.")
     parser.add_argument("--best-for", help="Stage name (plan|code|test|review). Prints best installed plugin or 'builtin'.")
+    parser.add_argument("--meta", action="store_true", help="List meta plugins (skill-creator, hookify, etc.) and which are installed.")
     args = parser.parse_args()
 
     report = detect()
@@ -118,6 +144,13 @@ def main() -> int:
     if args.best_for:
         choice = best_for(args.best_for, report)
         print(choice or "builtin")
+        return 0
+
+    if args.meta:
+        for name, purpose in META_PLUGINS.items():
+            installed = report["known_plugins"].get(name, {}).get("installed", False)
+            mark = "[installed]" if installed else "[ missing ]"
+            print(f"{mark} {name:18s} -- {purpose}")
         return 0
 
     print(json.dumps(report, indent=2))
