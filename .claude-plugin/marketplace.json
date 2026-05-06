@@ -1,0 +1,26 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "man-kit",
+  "description": "Quality-first build loop for Claude Code: plan → code → test → review with blocking quality gates between stages.",
+  "owner": {
+    "name": "Trọng Anh",
+    "url": "https://github.com/anhdt19942020"
+  },
+  "plugins": [
+    {
+      "name": "man-kit",
+      "description": "Build loop orchestrator. Dispatches each stage to the best available plugin and gates transitions on quality checks.",
+      "source": "./",
+      "category": "productivity",
+      "keywords": [
+        "workflow",
+        "quality-gate",
+        "orchestrator",
+        "build-loop",
+        "plan",
+        "test",
+        "review"
+      ]
+    }
+  ]
+}

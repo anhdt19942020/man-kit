@@ -1,0 +1,29 @@
+{
+  "name": "man-kit",
+  "version": "0.1.0",
+  "description": "Quality-first build loop: plan → code → test → review",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/stage-tracker.py\" --action=load"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/stage-tracker.py\" --action=announce"
+          }
+        ]
+      }
+    ]
+  }
+}

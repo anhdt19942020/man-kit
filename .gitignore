@@ -1,0 +1,17 @@
+# Local state per-project (created by stage-tracker)
+.man-kit/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
