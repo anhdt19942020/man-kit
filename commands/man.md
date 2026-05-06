@@ -1,8 +1,8 @@
 ---
 description: |
-  man-kit build loop dispatcher. Subcommands: plan, code, test, review, done, status.
-  Examples: /man plan add OAuth login | /man code | /man test | /man review | /man status
-argument-hint: <plan|code|test|review|done|status> [args]
+  man-kit build loop dispatcher. Subcommands: plan, code, test, review, done, status, setup.
+  Examples: /man plan add OAuth login | /man code | /man test | /man review | /man status | /man setup
+argument-hint: <plan|code|test|review|done|status|setup> [args]
 ---
 
 # /man — man-kit Build Loop
@@ -15,7 +15,9 @@ Take the first word of `$ARGUMENTS` as `<subcommand>`. The rest is `<rest>`.
 
 If `$ARGUMENTS` is empty or `<subcommand>` is `status`, run **2A**. Otherwise jump to the matching step.
 
-If `<subcommand>` is anything other than `plan|code|test|review|done|status`, reply with the valid list and STOP.
+If `<subcommand>` is `setup`, run **2G**.
+
+If `<subcommand>` is anything other than `plan|code|test|review|done|status|setup`, reply with the valid list and STOP.
 
 ## 2A — `status`
 
@@ -83,6 +85,16 @@ Report concisely. Do not dispatch any agent.
 1. Run gate `review_to_done`. Exit 2 → report verdict was not PASS, STOP.
 2. Advance state: `--to=done --gate-passed=true`. (This appends `review` to stages_completed and sets current_stage=done.)
 3. Tell the user the feature is complete. Suggest the next step (commit, push, open PR — but do NOT run those commands; they belong to a future stage).
+
+## 2G — `setup`
+
+Print copy-pasteable install commands for missing recommended plugins.
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator.py" --suggest-install
+```
+
+Show the output verbatim to the user. Do not invoke any plugin install yourself — slash commands only fire when the user types them. After the listing, remind the user that all listed plugins are optional; built-in fallbacks always work.
 
 ## Notes
 

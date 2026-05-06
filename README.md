@@ -21,15 +21,45 @@ Five design rules:
 
 ## Quick start
 
+### Minimal (man-kit only)
+
 ```sh
-# 1. Install (after a marketplace registers man-kit)
 /plugin marketplace add anhdt19942020/man-kit
 /plugin install man-kit@man-kit
+```
 
-# 2. Start a feature
+### Recommended (man-kit + community plugins, one marketplace)
+
+The `man-kit` marketplace lists man-kit plus three community plugins it composes with. After adding the marketplace once, install whichever you want:
+
+```sh
+/plugin marketplace add anhdt19942020/man-kit
+
+/plugin install man-kit@man-kit
+/plugin install context-mode@man-kit    # ~98% context-window savings (mksglu/context-mode)
+/plugin install caveman@man-kit         # ~75% output token compression (JuliusBrussee/caveman)
+/plugin install craftpowers@man-kit     # test/review/security sub-agents (anhdt19942020/craftpowers)
+```
+
+Each is independent. man-kit detects what's installed and dispatches accordingly; without these, built-in fallbacks run.
+
+### Discover more plugins per stage
+
+After install, ask man-kit which extra plugins (Anthropic-official + others) would help:
+
+```sh
+/man setup
+```
+
+It prints copy-pasteable `/plugin install` commands for missing recommended plugins, grouped by stage. Nothing auto-installs.
+
+### Daily workflow
+
+```sh
+# 1. Start a feature
 /man plan add OAuth login flow
 
-# 3. After reviewing the generated docs/PLAN-oauth-login.md, build it
+# 2. After reviewing the generated docs/PLAN-oauth-login.md, build it
 /man code     # implement one task at a time
 /man test     # generate tests, run suite, gate on coverage
 /man review   # aggregated quality + security verdict

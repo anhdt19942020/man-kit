@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "man-kit",
-  "description": "Quality-first build loop for Claude Code: plan → code → test → review with blocking quality gates between stages.",
+  "description": "Quality-first build loop for Claude Code: plan → code → test → review. Bundles man-kit + recommended community plugins so all are addable from one marketplace.",
   "owner": {
     "name": "Trọng Anh",
     "url": "https://github.com/anhdt19942020"
@@ -21,6 +21,36 @@
         "test",
         "review"
       ]
+    },
+    {
+      "name": "context-mode",
+      "description": "Reference: sandboxed code execution with ~98% context-window savings during the man-kit `code` stage. Original work by Mert Koseoğlu (mksglu/context-mode).",
+      "source": {
+        "source": "github",
+        "repo": "mksglu/context-mode"
+      },
+      "category": "productivity",
+      "keywords": ["context-window", "sandbox", "mcp"]
+    },
+    {
+      "name": "caveman",
+      "description": "Reference: ~75% reduction in agent output tokens via caveman-speak compression. Original work by Julius Brussee (JuliusBrussee/caveman).",
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
+      },
+      "category": "productivity",
+      "keywords": ["compression", "token-savings"]
+    },
+    {
+      "name": "craftpowers",
+      "description": "Reference: ships test-engineer, code-reviewer, secure-reviewer, doc-writer, debugger sub-agents that man-kit dispatches during test/review stages.",
+      "source": {
+        "source": "github",
+        "repo": "anhdt19942020/craftpowers"
+      },
+      "category": "productivity",
+      "keywords": ["agents", "review", "test"]
     }
   ]
 }

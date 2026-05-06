@@ -128,11 +128,96 @@ def best_for(stage: str, report: dict[str, Any]) -> str | None:
     return None
 
 
+# Map short_name -> "/plugin install <plugin-id>@<marketplace>" command.
+# Empty string means "no canonical install path" (community plugin not on a marketplace yet, etc.)
+INSTALL_HINTS = {
+    "context-mode":       "/plugin marketplace add mksglu/context-mode && /plugin install context-mode@context-mode",
+    "context7":           "/plugin install context7@claude-plugins-official",
+    "caveman":            "/plugin marketplace add JuliusBrussee/caveman && /plugin install caveman@caveman",
+    "superpowers":        "/plugin install superpowers@claude-plugins-official",
+    "craftpowers":        "/plugin marketplace add anhdt19942020/craftpowers && /plugin install craftpowers@craftpowers-marketplace",
+    "code-review":        "/plugin install code-review@claude-plugins-official",
+    "frontend-design":    "/plugin install frontend-design@claude-plugins-official",
+    "code-simplifier":    "/plugin install code-simplifier@claude-plugins-official",
+    "playwright":         "/plugin install playwright@claude-plugins-official",
+    "semgrep":            "/plugin install semgrep@claude-plugins-official",
+    "aikido":             "/plugin install aikido-security@claude-plugins-official",
+    "coderabbit":         "/plugin install coderabbit@claude-plugins-official",
+    "feature-dev":        "/plugin install feature-dev@claude-plugins-official",
+    "pr-review-toolkit":  "/plugin install pr-review-toolkit@claude-plugins-official",
+    "optibot":            "/plugin install optibot-code-review@claude-plugins-official",
+    "sourcegraph":        "/plugin install sourcegraph@claude-plugins-official",
+    "sentry":             "/plugin install sentry@claude-plugins-official",
+    "skill-creator":      "/plugin install skill-creator@claude-plugins-official",
+    "claudemd-mgmt":      "/plugin install claude-md-management@claude-plugins-official",
+    "hookify":            "/plugin install hookify@claude-plugins-official",
+    "session-report":     "/plugin install session-report@claude-plugins-official",
+    "plugin-dev-toolkit": "/plugin install plugin-developer-toolkit@claude-plugins-official",
+    "secure-reviewer":    "",  # built into craftpowers
+}
+
+
+def suggest_install(report: dict[str, Any]) -> int:
+    """Print install commands for plugins missing across stages + meta.
+
+    Output is plain text the user can copy-paste into the Claude Code prompt.
+    Plugins already installed are skipped. Plugins without a known install path
+    (INSTALL_HINTS empty) are skipped silently.
+    """
+    seen: set[str] = set()
+    sections: list[tuple[str, list[str]]] = []
+
+    for stage in ("plan", "code", "test", "review"):
+        lines: list[str] = []
+        for short in STAGE_PREFERENCE.get(stage, []):
+            if short in seen:
+                continue
+            seen.add(short)
+            installed = report["known_plugins"].get(short, {}).get("installed", False)
+            if installed:
+                continue
+            cmd = INSTALL_HINTS.get(short, "")
+            if cmd:
+                lines.append(f"  {cmd}")
+        if lines:
+            sections.append((f"For `{stage}` stage:", lines))
+
+    meta_lines: list[str] = []
+    for short in META_PLUGINS:
+        if short in seen:
+            continue
+        seen.add(short)
+        installed = report["known_plugins"].get(short, {}).get("installed", False)
+        if installed:
+            continue
+        cmd = INSTALL_HINTS.get(short, "")
+        if cmd:
+            meta_lines.append(f"  {cmd}  # {META_PLUGINS[short]}")
+    if meta_lines:
+        sections.append(("Meta / adjacent (optional):", meta_lines))
+
+    if not sections:
+        print("[man-kit] All known recommended plugins are installed. Nothing to add.")
+        return 0
+
+    print("[man-kit] Recommended but missing plugins.\n")
+    print("Copy and paste these into Claude Code (one at a time). Each is independent;")
+    print("install whichever fit your workflow. The built-in fallbacks work without any of them.\n")
+    for title, lines in sections:
+        print(title)
+        for line in lines:
+            print(line)
+        print()
+    print("After installing, run `/plugin reload` (or restart) and `/man setup` again to verify.")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--has", help="Short name of a plugin. Exits 0 if installed, 1 otherwise.")
     parser.add_argument("--best-for", help="Stage name (plan|code|test|review). Prints best installed plugin or 'builtin'.")
     parser.add_argument("--meta", action="store_true", help="List meta plugins (skill-creator, hookify, etc.) and which are installed.")
+    parser.add_argument("--suggest-install", action="store_true", help="Print copy-pasteable /plugin install commands for missing recommended plugins, grouped by stage.")
     args = parser.parse_args()
 
     report = detect()
@@ -152,6 +237,9 @@ def main() -> int:
             mark = "[installed]" if installed else "[ missing ]"
             print(f"{mark} {name:18s} -- {purpose}")
         return 0
+
+    if args.suggest_install:
+        return suggest_install(report)
 
     print(json.dumps(report, indent=2))
     return 0
